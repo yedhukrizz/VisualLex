@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VisualLex – The Creative Keyword Vault</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --bg-elevated: #111111;
+      --fg: #f5f5f0;
+      --muted: #6b6b6b;
+      --accent: #c8ff00;
+      --accent-dim: rgba(200, 255, 0, 0.1);
+      --border: #2a2a2a;
+      --card: #161616;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Background Pattern */
+    .bg-grid {
+      background-image: 
+        linear-gradient(rgba(200, 255, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200, 255, 0, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .bg-noise {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.4;
+      z-index: 1000;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--muted);
+    }
+
+    /* Animations */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .animate-fade-up {
+      animation: fadeSlideUp 0.6s ease-out forwards;
+      opacity: 0;
+    }
+
+    .stagger-1 { animation-delay: 0.05s; }
+    .stagger-2 { animation-delay: 0.1s; }
+    .stagger-3 { animation-delay: 0.15s; }
+    .stagger-4 { animation-delay: 0.2s; }
+    .stagger-5 { animation-delay: 0.25s; }
+
+    /* Components */
+    .keyword-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .keyword-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(200, 255, 0, 0.1);
+    }
+
+    .keyword-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--fg);
+      transition: all 0.15s ease;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .tag {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    .category-btn {
+      border-left: 3px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .category-btn:hover,
+    .category-btn.active {
+      background: var(--accent-dim);
+      border-left-color: var(--accent);
+    }
+
+    .search-input {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      transition: all 0.15s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .stack-bar {
+      background: var(--bg-elevated);
+      border-top: 1px solid var(--accent);
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .copy-toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: var(--bg);
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-weight: 600;
+      z-index: 2000;
+      animation: fadeSlideUp 0.3s ease-out;
+    }
+
+    /* Focus states */
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .sidebar {
+      scrollbar-width: thin;
+    }
+  </style>
+</head>
+<body class="bg-grid">
+  <div class="bg-noise"></div>
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-[var(--bg)]/90 backdrop-blur-sm border-b border-[var(--border)]">
+    <div class="flex items-center justify-between px-6 py-4">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-[var(--accent)] flex items-center justify-center">
+          <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight">VisualLex</h1>
+          <p class="text-xs text-[var(--muted)] font-mono">The Creative Keyword Vault</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="Search keywords..." 
+            class="search-input w-64 px-4 py-2 pl-10 text-sm rounded"
+          >
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        
+        <button id="randomBtn" class="btn-primary px-4 py-2 text-sm rounded flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          Random Stack
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex pt-16">
+    <!-- Sidebar -->
+    <aside class="sidebar fixed left-0 top-16 bottom-0 w-72 bg-[var(--bg-elevated)] border-r border-[var(--border)] overflow-y-auto">
+      <div class="p-4">
+        <h2 class="text-xs font-mono text-[var(--muted)] uppercase tracking-wider mb-4">Categories</h2>
+        <nav id="categoryNav" class="space-y-1">
+          <!-- Categories populated by JS -->
+        </nav>
+      </div>
+      
+      <div class="p-4 border-t border-[var(--border)]">
+        <h2 class="text-xs font-mono text-[var(--muted)] uppercase tracking-wider mb-4">Filter by Era</h2>
+        <div class="flex flex-wrap gap-2" id="eraFilters">
+          <button class="era-btn tag cursor-pointer hover:bg-[var(--accent)] hover:text-black transition-all" data-era="1920s">1920s</button>
+          <button class="era-btn tag cursor-pointer hover:bg-[var(--accent)] hover:text-black transition-all" data-era="1950s">1950s</button>
+          <button class="era-btn tag cursor-pointer hover:bg-[var(--accent)] hover:text-black transition-all" data-era="1980s">1980s</button>
+          <button class="era-btn tag cursor-pointer hover:bg-[var(--accent)] hover:text-black transition-all" data-era="1990s">1990s</button>
+          <button class="era-btn tag cursor-pointer hover:bg-[var(--accent)] hover:text-black transition-all" data-era="2000s">2000s</button>
+          <button class="era-btn tag cursor-pointer hover:bg-[var(--accent)] hover:text-black transition-all" data-era="2020s">2020s</button>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-[var(--border)]">
+        <h2 class="text-xs font-mono text-[var(--muted)] uppercase tracking-wider mb-4">Stats</h2>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-[var(--muted)]">Total Keywords</span>
+            <span class="font-mono text-[var(--accent)]" id="totalCount">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[var(--muted)]">In Stack</span>
+            <span class="font-mono text-[var(--accent)]" id="stackCount">0</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-72 flex-1 p-6 pb-32">
+      <div class="mb-8 animate-fade-up">
+        <h2 id="currentCategory" class="text-3xl font-bold mb-2">Legendary Design Studios</h2>
+        <p id="categoryDescription" class="text-[var(--muted)]">Influential studios whose names yield specific stylistic results.</p>
+      </div>
+
+      <div id="keywordGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Keywords populated by JS -->
+      </div>
+    </main>
+  </div>
+
+  <!-- Stack Bar -->
+  <div id="stackBar" class="stack-bar fixed bottom-0 left-72 right-0 p-4 hidden z-40">
+    <div class="flex items-center justify-between max-w-4xl mx-auto">
+      <div class="flex items-center gap-4">
+        <span class="text-sm"><span id="selectedCount" class="font-mono text-[var(--accent)]">0</span> keywords selected</span>
+        <div id="selectedPreview" class="flex gap-2 overflow-x-auto max-w-md">
+          <!-- Preview tags -->
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="clearStack" class="btn-ghost px-4 py-2 text-sm rounded">Clear</button>
+        <button id="copyStack" class="btn-primary px-4 py-2 text-sm rounded flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+          </svg>
+          Copy All
+        </button>
+        <button id="exportStack" class="btn-ghost px-4 py-2 text-sm rounded flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Export .txt
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <script>
+    // ========== DATA ==========
+    const categories = [
+      {
+        id: 'studios',
+        name: 'Legendary Design Studios',
+        description: 'Influential studios whose names yield specific stylistic results.',
+        keywords: [
+          { term: 'Pentagram', desc: 'Partner-led, iconic multidisciplinary graphic design and brand identity.', tags: ['identity', 'systems'] },
+          { term: 'Collins', desc: 'Brand experience systems merging strategy with visceral storytelling.', tags: ['branding', 'strategy'] },
+          { term: 'Sagmeister & Walsh', desc: 'Provocative, typography-led experimental branding.', tags: ['experimental', 'type'] },
+          { term: 'Paula Scher', desc: 'Bold, iconic map paintings and typographic identity systems.', tags: ['type', 'maps'] },
+          { term: 'IDEO', desc: 'Human-centered design thinking and innovation methodology.', tags: ['ux', 'innovation'] },
+          { term: 'Buck Studio', desc: 'Playful, technically brilliant motion design and animation.', tags: ['motion', '3d'] },
+          { term: 'Studio Dumbar', desc: 'Digital visual identities with kinetic typography and color.', tags: ['motion', 'identity'] },
+          { term: 'Chermayeff & Geismar', desc: 'Modernist logo design and corporate identity legends.', tags: ['logos', 'modernism'] },
+          { term: 'Wolff Olins', desc: 'Strategic brand world-building for global institutions.', tags: ['branding', 'strategy'] },
+          { term: 'Landor', desc: 'Global brand consulting with corporate consistency.', tags: ['corporate', 'systems'] },
+          { term: 'Base Design', desc: 'Culturally relevant, stripped-back branding and typography.', tags: ['minimal', 'type'] },
+          { term: 'Snøhetta', desc: 'Architecture and brand integration with material focus.', tags: ['architecture', 'spatial'] },
+          { term: 'Experimental Jetset', desc: 'Strict grid systems and Helvetica-driven modernism.', tags: ['swiss', 'type'] },
+          { term: 'Made Thought', desc: 'Craft-focused branding for luxury and culture sectors.', tags: ['luxury', 'craft'] },
+          { term: 'AKQA', desc: 'Digital innovation and interface-first brand experiences.', tags: ['digital', 'ui'] },
+          { term: 'Meta Design', desc: 'Systematic brand architecture and typography.', tags: ['systems', 'type'] },
+          { term: 'Moving Brands', desc: 'Living identity systems and motion-centric logos.', tags: ['motion', 'identity'] },
+          { term: 'North', desc: 'Minimalist rebranding and strategic visual reduction.', tags: ['minimal', 'strategy'] },
+          { term: 'Gretel', desc: 'Distinctive visual systems for media and culture.', tags: ['media', 'systems'] },
+          { term: 'DixonBaxi', desc: 'Expressive branding for entertainment and travel.', tags: ['expressive', 'travel'] },
+          { term: 'Mother Design', desc: 'Independent, irreverent brand creativity.', tags: ['indie', 'bold'] },
+          { term: 'Huge Inc', desc: 'Digital product design and experience innovation.', tags: ['ux', 'digital'] },
+          { term: 'Fantasy', desc: 'Humanistic interface design for tech giants.', tags: ['ui', 'tech'] },
+          { term: 'Lotta Nieminen', desc: 'High-fashion editorial and luxury brand design.', tags: ['fashion', 'editorial'] },
+          { term: 'Neville Brody', desc: 'Graphic language of post-punk and electronic music.', tags: ['postmodern', 'music'] },
+          { term: 'Peter Saville', desc: 'Iconic album art and melancholic branding.', tags: ['music', 'editorial'] },
+          { term: 'Tibor Kalman', desc: 'Socially conscious and provocative editorial design.', tags: ['editorial', 'provocative'] },
+          { term: 'M/M Paris', desc: 'Art and fashion collaboration with distinctive ornamentation.', tags: ['fashion', 'art'] },
+          { term: 'Nendo', desc: 'Giving people a small "!" moment through object and brand design.', tags: ['product', 'minimal'] },
+          { term: 'DIA Studio', desc: 'Computational typography and generative branding.', tags: ['generative', 'type'] },
+          { term: 'KesselsKramer', desc: 'Raw, honest communication and advertising.', tags: ['raw', 'honest'] },
+          { term: 'Artiva', desc: 'Contemporary Italian graphic design and typography.', tags: ['italian', 'editorial'] },
+          { term: 'Hort', desc: 'Berlin-based experimental graphic design studio.', tags: ['experimental', 'german'] },
+          { term: 'Julia', desc: 'Lausanne-based contemporary design practice.', tags: ['swiss', 'editorial'] },
+          { term: 'Polygraph', desc: 'Copenhagen-based brand and digital design.', tags: ['scandi', 'digital'] },
+          { term: 'Stay Beautiful', desc: 'Tokyo-based creative direction and branding.', tags: ['japanese', 'fashion'] },
+          { term: 'Mush studios', desc: 'Emerging design language and material exploration.', tags: ['experimental', 'materials'] },
+          { term: 'Forma', desc: 'Barcelona-based graphic design and typography.', tags: ['spanish', 'type'] },
+          { term: 'La Dispersion', desc: 'Latin American visual culture and design.', tags: ['latin', 'culture'] },
+          { term: 'Rim&Zumi', desc: 'Korean contemporary design aesthetics.', tags: ['korean', 'contemporary'] }
+        ]
+      },
+      {
+        id: 'styles',
+        name: 'Iconic Brand Design Styles',
+        description: 'Historical movements and aesthetic genres that define visual culture.',
+        keywords: [
+          { term: 'Swiss International Style', desc: 'Objective, grid-based, sans-serif clarity.', tags: ['modernism', 'grid'], era: '1950s' },
+          { term: 'Bauhaus', desc: 'Geometric abstraction, form follows function, primary colors.', tags: ['geometric', 'modernism'], era: '1920s' },
+          { term: 'Brutalism', desc: 'Raw, unpolished, high-contrast web and print aesthetic.', tags: ['raw', 'web'] },
+          { term: 'Neo-brutalism', desc: 'Playful brutality with bright colors and black borders.', tags: ['playful', 'web'] },
+          { term: 'Memphis Design', desc: '80s postmodern colorful geometric patterns and laminate.', tags: ['pattern', 'playful'], era: '1980s' },
+          { term: 'Corporate Modernism', desc: 'Clean, safe, professional blue chip aesthetics.', tags: ['corporate', 'clean'] },
+          { term: 'Y2K Aesthetic', desc: 'Metallic, glossy, futuristic millennium optimism.', tags: ['futuristic', 'metallic'], era: '2000s' },
+          { term: 'Vaporwave', desc: 'Nostalgic 90s web, neon, statues, and glitch art.', tags: ['neon', 'glitch'], era: '1990s' },
+          { term: 'Cyberpunk', desc: 'High-tech, low-life, neon noir, dystopian interfaces.', tags: ['neon', 'dystopian'] },
+          { term: 'Scandinavian Minimalism', desc: 'Functional, light wood, cozy minimalism.', tags: ['minimal', 'scandi'] },
+          { term: 'Japanese Zen Minimalism', desc: 'Ma (negative space), subtle, organic balance.', tags: ['minimal', 'zen'] },
+          { term: 'Luxury Editorial', desc: 'Serif fonts, high contrast, premium fashion spacing.', tags: ['luxury', 'fashion'] },
+          { term: 'High-contrast Monochrome', desc: 'Stark black and white impact.', tags: ['mono', 'bold'] },
+          { term: 'Gradient Mesh Design', desc: 'Complex, smooth 3D color transitions.', tags: ['3d', 'gradient'] },
+          { term: 'Flat 2.0', desc: 'Minimalist but with subtle shadows and depth.', tags: ['minimal', 'ui'] },
+          { term: 'Skeuomorphism', desc: 'Real-world texture imitation in digital design.', tags: ['texture', 'realistic'] },
+          { term: 'Glassmorphism', desc: 'Frosted glass transparency and blurred backgrounds.', tags: ['blur', 'ui'] },
+          { term: 'Claymorphism', desc: 'Soft, 3D clay-like shapes and pastel colors.', tags: ['3d', 'soft'] },
+          { term: 'Retro Futurism', desc: '50s/60s vision of the future, atom age, curved.', tags: ['retro', 'space'], era: '1950s' },
+          { term: 'Art Deco Revival', desc: 'Geometric elegance, gold lines, 1920s opulence.', tags: ['gold', 'elegant'], era: '1920s' },
+          { term: 'Dutch De Stijl', desc: 'Mondrian-like grids, primary colors, straight lines.', tags: ['geometric', 'grid'], era: '1920s' },
+          { term: 'Constructivism', desc: 'Russian propaganda style, bold angles, red/black.', tags: ['bold', 'political'], era: '1920s' },
+          { term: 'Mid-Century Modern', desc: '50s organic shapes, muted tones, optimistic.', tags: ['organic', 'retro'], era: '1950s' },
+          { term: 'Psychedelic 60s', desc: 'Warped type, melting forms, vibrant swirls.', tags: ['trippy', 'vibrant'], era: '1950s' },
+          { term: 'Grunge Design', desc: 'Dirty textures, distressed type, 90s rebellion.', tags: ['dirty', 'texture'], era: '1990s' },
+          { term: 'Frutiger Aero', desc: 'Glossy, nature-tech, skeuomorphic glossy transparency.', tags: ['glossy', 'nature'], era: '2000s' },
+          { term: 'Abstract Expressionism', desc: 'Emotional, chaotic, paint-based visuals.', tags: ['chaotic', 'paint'] },
+          { term: 'Pop Art', desc: 'Comic dots, bold outlines, mass media critique.', tags: ['comic', 'bold'], era: '1950s' },
+          { term: 'Op Art', desc: 'Optical illusions, black and white patterns.', tags: ['illusion', 'mono'] },
+          { term: 'Steampunk', desc: 'Victorian machinery, brass, gears, leather.', tags: ['brass', 'victorian'] },
+          { term: 'Dieselpunk', desc: 'Art Deco machinery, grease, industrial retro.', tags: ['industrial', 'retro'] },
+          { term: 'Raygun Magazine Style', desc: 'Chaotic layouts, illegible type, 90s experimental.', tags: ['chaotic', 'type'], era: '1990s' },
+          { term: 'Vector Art Deco', desc: 'Clean lines, gold gradients, symmetry.', tags: ['vector', 'gold'] },
+          { term: 'Pixel Art', desc: '8-bit and 16-bit digital limitation aesthetic.', tags: ['retro', 'gaming'] },
+          { term: 'Low Poly', desc: 'Geometric 3D shapes with sharp polygons.', tags: ['3d', 'geometric'] },
+          { term: 'Isometric Design', desc: '2D representation of 3D objects, technical look.', tags: ['technical', '3d'] },
+          { term: 'Paper Cutout', desc: 'Layered paper textures, soft shadows, craft feel.', tags: ['craft', 'texture'] },
+          { term: 'Liquid Abstract', desc: 'Morphing shapes, metallic fluids, iridescence.', tags: ['fluid', '3d'] },
+          { term: 'Kinetic Typography', desc: 'Moving text as a visual element.', tags: ['motion', 'type'] },
+          { term: 'Wabi-Sabi', desc: 'Finding beauty in imperfection and transience.', tags: ['imperfect', 'zen'] },
+          { term: 'Acid Graphics', desc: 'Trippy, neon, liquid metal, surreal 3D.', tags: ['trippy', 'neon'] },
+          { term: 'Quiet Luxury', desc: 'Whispered branding, neutral tones, expensive simplicity.', tags: ['luxury', 'minimal'] },
+          { term: 'Solarpunk', desc: 'Green tech, bright future, nature integrated.', tags: ['green', 'utopian'] },
+          { term: 'Lunarcore', desc: 'Space suits, grey, utilitarian, sci-fi functional.', tags: ['space', 'utilitarian'] },
+          { term: 'Corporate Memphis', desc: 'Flat figures, abstract limbs, tech illustration.', tags: ['illustration', 'tech'] },
+          { term: 'Hauntology', desc: 'Nostalgia for lost futures, spectral imagery.', tags: ['nostalgic', 'ghostly'] },
+          { term: 'Driftwood Style', desc: 'Weathered, sun-bleached, coastal textures.', tags: ['coastal', 'texture'] },
+          { term: 'Dark Mode Default', desc: 'OLED black, interface-first dark aesthetics.', tags: ['dark', 'ui'] },
+          { term: 'Glitch Art', desc: 'Digital errors, RGB splitting, data bending.', tags: ['digital', 'glitch'] },
+          { term: 'Biomimetic Design', desc: 'Nature-inspired forms and organic structures.', tags: ['organic', 'nature'] }
+        ]
+      },
+      {
+        id: 'uiux',
+        name: 'UI/UX Design Styles',
+        description: 'Screen-specific visual languages for digital products.',
+        keywords: [
+          { term: 'Minimal SaaS Dashboard', desc: 'Clean lines, card layouts, focus on data.', tags: ['saas', 'dashboard'] },
+          { term: 'Fintech UI', desc: 'Dark mode, gradients, trust-building data visualization.', tags: ['fintech', 'data'] },
+          { term: 'Dark Mode Futurism', desc: 'OLED blacks, neon accents, high contrast.', tags: ['dark', 'neon'] },
+          { term: 'Apple HIG Style', desc: 'San Francisco type, blur effects, system consistency.', tags: ['apple', 'clean'] },
+          { term: 'Material Design 3', desc: 'Google\'s dynamic color, rounded corners, layers.', tags: ['google', 'system'] },
+          { term: 'Neopop Interface', desc: 'Black outlines, bright colors, comic-style UI.', tags: ['comic', 'bold'] },
+          { term: 'Soft UI (Neumorphism)', desc: 'Extruded plastic look, soft shadows.', tags: ['soft', 'shadows'] },
+          { term: 'Brutalist Web', desc: 'System fonts, raw HTML borders, minimal styling.', tags: ['raw', 'html'] },
+          { term: 'Bento Grid Layout', desc: 'Modular card grid inspired by Japanese bento boxes.', tags: ['grid', 'japanese'] },
+          { term: 'Scroll-driven Storytelling', desc: 'Parallax effects, narrative progressions.', tags: ['parallax', 'narrative'] },
+          { term: 'Microinteraction-focused UI', desc: 'Buttons that react joyfully, haptic visuals.', tags: ['motion', 'delight'] },
+          { term: 'Motion-first Interface', desc: 'Animation defines the structure, not decoration.', tags: ['motion', 'structural'] },
+          { term: 'AI-native Interface', desc: 'Chat-first, prompt bar, generative placeholders.', tags: ['ai', 'chat'] },
+          { term: 'Command Palette UI', desc: 'Keyboard-first navigation, search-centric.', tags: ['keyboard', 'power'] },
+          { term: 'Floating Dock UI', desc: 'Glassy islands, floating toolbars, macOS style.', tags: ['dock', 'glass'] },
+          { term: 'Gamified UI', desc: 'Progress bars, badges, bright colors, fun interactions.', tags: ['gaming', 'fun'] },
+          { term: 'Wearable UI', desc: 'Tiny circular screens, high contrast, glanceable.', tags: ['watch', 'compact'] },
+          { term: 'Smart TV UI', desc: 'Large typography, horizontal scrolling, cinematic.', tags: ['tv', 'cinematic'] },
+          { term: 'AR HUD Interface', desc: 'Augmented reality overlays, spatial indicators.', tags: ['ar', 'future'] },
+          { term: 'Three.js Website', desc: 'WebGL heavy, immersive 3D backgrounds.', tags: ['3d', 'webgl'] },
+          { term: 'Terminal CLI Aesthetic', desc: 'Green text on black, monospace, hacker vibes.', tags: ['hacker', 'mono'] },
+          { term: 'Notion Style', desc: 'Block-based editing, clean typography, simple toggles.', tags: ['blocks', 'productivity'] },
+          { term: 'Cybertruck Aesthetic', desc: 'Angular, stainless steel, sharp edges.', tags: ['angular', 'metal'] },
+          { term: 'Glass Dashboard', desc: 'Transparency, layers of information, blur.', tags: ['glass', 'blur'] },
+          { term: 'Skeuomorphic Mobile App', desc: 'Textured leather, wood, realistic buttons.', tags: ['texture', 'realistic'] },
+          { term: 'Metro UI', desc: 'Flat tiles, typography heavy, Microsoft style.', tags: ['tiles', 'microsoft'] },
+          { term: 'Liquid UI', desc: 'Morphing buttons, fluid transitions.', tags: ['fluid', 'motion'] },
+          { term: 'Data Viz Dark Mode', desc: 'Glowing charts, technical fonts, grid backgrounds.', tags: ['data', 'dark'] },
+          { term: 'E-commerce Clean', desc: 'White space, high-res product photography focus.', tags: ['shop', 'clean'] },
+          { term: 'Agency Portfolio Grid', desc: 'Thumbnails, bold hover states, creative freedom.', tags: ['portfolio', 'creative'] },
+          { term: 'Crypto Web3 Dashboard', desc: 'Dark themes, candlestick charts, decentralization motifs.', tags: ['crypto', 'web3'] },
+          { term: 'Health Tech UI', desc: 'Pastel gradients, rounded elements, clean typography.', tags: ['health', 'pastel'] },
+          { term: 'Dating App UI', desc: 'Card swiping, large profile images, playful icons.', tags: ['social', 'cards'] },
+          { term: 'Retro Mac OS', desc: 'Pixel icons, platinum grey, classic window borders.', tags: ['retro', 'apple'] },
+          { term: 'Windows 95 Aesthetic', desc: 'Grey windows, chunky borders, retro computing.', tags: ['retro', 'windows'] },
+          { term: 'E-ink Interface', desc: 'High contrast black/white, static feel, paper-like.', tags: ['epaper', 'mono'] },
+          { term: 'Neo-Brutalism Web', desc: 'Bright colors, thick borders, drop shadows.', tags: ['bold', 'web'] },
+          { term: 'Editorial Layout Web', desc: 'Magazine style, asymmetry, large headlines.', tags: ['editorial', 'magazine'] },
+          { term: 'Spatial Computing UI', desc: '3D menus, depth-based interactions, immersive.', tags: ['spatial', 'vr'] },
+          { term: 'Voice-First Interface', desc: 'Minimal visuals, audio feedback, conversational.', tags: ['voice', 'accessibility'] }
+        ]
+      },
+      {
+        id: 'colors',
+        name: 'Color Scheme Keywords',
+        description: 'Searchable palette descriptors for mood setting.',
+        keywords: [
+          { term: 'Monochromatic Neutral', desc: 'Various shades of grey, white, and beige.', tags: ['neutral', 'grey'] },
+          { term: 'Earthy Organic Palette', desc: 'Terracotta, olive, sand, moss green.', tags: ['earth', 'green'] },
+          { term: 'Cyber Neon Gradient', desc: 'Hot pink, electric blue, acid green.', tags: ['neon', 'vibrant'] },
+          { term: 'Luxury Black & Gold', desc: 'Deep matte black, metallic gold accents.', tags: ['luxury', 'gold'] },
+          { term: 'Pastel Dreamscape', desc: 'Soft lavender, baby blue, mint, pink.', tags: ['pastel', 'soft'] },
+          { term: 'Muted Scandinavian', desc: 'Dusty blue, light wood, grey, soft white.', tags: ['scandi', 'muted'] },
+          { term: 'High Saturation Pop', desc: 'Primary colors, bold red, blue, yellow.', tags: ['bold', 'primary'] },
+          { term: 'Desert Sunset', desc: 'Burnt orange, deep purple, fading pink.', tags: ['desert', 'warm'] },
+          { term: 'Midnight Blue Tech', desc: 'Navy, dark slate, electric blue accents.', tags: ['tech', 'blue'] },
+          { term: 'Forest Minimal', desc: 'Hunter green, bark brown, cream.', tags: ['forest', 'green'] },
+          { term: 'Cream & Terracotta', desc: 'Warm neutrals, clay pots, sand tones.', tags: ['warm', 'clay'] },
+          { term: 'Deep Purple Futurism', desc: 'Violet, indigo, cosmic black.', tags: ['purple', 'cosmic'] },
+          { term: 'Champagne Luxury', desc: 'Beige, silver, pale gold, pearl.', tags: ['luxury', 'silver'] },
+          { term: 'Bold Primary Pop', desc: 'Stark red, blue, yellow contrasts.', tags: ['bold', 'contrast'] },
+          { term: 'Analogous Warm Harmony', desc: 'Reds, oranges, and yellows blending.', tags: ['warm', 'harmony'] },
+          { term: 'Oceanic Deep', desc: 'Teal, navy, aqua, foam white.', tags: ['ocean', 'blue'] },
+          { term: 'Forest Canopy', desc: 'Multiple shades of green, moss, fern.', tags: ['green', 'nature'] },
+          { term: 'Candy Coated', desc: 'Bright, sugary pink, blue, and yellow.', tags: ['candy', 'sweet'] },
+          { term: 'Retro 70s Brown', desc: 'Avocado green, harvest gold, burnt orange.', tags: ['retro', 'brown'], era: '1980s' },
+          { term: '80s Memphis', desc: 'Black background with squiggles of neon.', tags: ['neon', 'memphis'], era: '1980s' },
+          { term: 'Sepia Toned', desc: 'Faded photograph look, warm browns.', tags: ['sepia', 'vintage'] },
+          { term: 'Black & White Noir', desc: 'Absence of color, stark contrast.', tags: ['mono', 'noir'] },
+          { term: 'Duotone Punk', desc: 'Two-color separation, usually contrasting.', tags: ['punk', 'contrast'] },
+          { term: 'Mint Fresh', desc: 'Mint green, white, light wood.', tags: ['mint', 'fresh'] },
+          { term: 'Cherry Blossom', desc: 'Soft pink, white, pale greens.', tags: ['pink', 'japanese'] },
+          { term: 'Industrial Grey', desc: 'Concrete, steel, rust orange accents.', tags: ['industrial', 'grey'] },
+          { term: 'Tropical Vibrant', desc: 'Palm green, parrot pink, bright yellow.', tags: ['tropical', 'vibrant'] },
+          { term: 'Lavender Fields', desc: 'Purple hues, soft greens, blue skies.', tags: ['lavender', 'soft'] },
+          { term: 'Maritime Navy', desc: 'Navy blue, white stripes, gold buttons.', tags: ['navy', 'nautical'] },
+          { term: 'Autumn Harvest', desc: 'Pumpkin, squash yellow, deep red.', tags: ['autumn', 'warm'] },
+          { term: 'Winter Ice', desc: 'Pale blue, white, silver, grey.', tags: ['winter', 'cold'] },
+          { term: 'Spring Bloom', desc: 'Fresh greens, tulip pinks, yellows.', tags: ['spring', 'fresh'] },
+          { term: 'Citrus Zest', desc: 'Lime, lemon, orange, bright and acidic.', tags: ['citrus', 'bright'] },
+          { term: 'Marsala Wine', desc: 'Deep red-brown, blush, gold.', tags: ['wine', 'luxury'] },
+          { term: 'Rose Gold Tech', desc: 'Pink gold, white, soft grey.', tags: ['rosegold', 'tech'] },
+          { term: 'Copper & Teal', desc: 'Metallic copper, deep teal contrast.', tags: ['copper', 'teal'] },
+          { term: 'Silver Screen', desc: 'Metallic silver, black, white.', tags: ['silver', 'mono'] },
+          { term: 'Neon Noir', desc: 'Dark backgrounds with electric neon highlights.', tags: ['neon', 'dark'] },
+          { term: 'Matte Pastel', desc: 'Non-glossy soft colors, chalk-like finish.', tags: ['pastel', 'matte'] },
+          { term: 'Acid Wash', desc: 'Distorted greens and blues, grunge texture.', tags: ['acid', 'grunge'] },
+          { term: 'Monet Water Lilies', desc: 'Impressionist dabs of blue, green, pink.', tags: ['impressionist', 'art'] },
+          { term: 'Sunset Vaporwave', desc: 'Pink, purple, teal gradients.', tags: ['vaporwave', 'gradient'] },
+          { term: 'Royal Jewel Tones', desc: 'Emerald, ruby, sapphire, amethyst.', tags: ['jewel', 'luxury'] },
+          { term: 'Frosted Glass', desc: 'Translucent whites, pale blues.', tags: ['glass', 'frost'] },
+          { term: 'Toxic Waste', desc: 'Chartreuse, nuclear green, warning yellow.', tags: ['toxic', 'neon'] },
+          { term: 'Corporate Blue', desc: 'Navy, white, light grey.', tags: ['corporate', 'blue'] },
+          { term: 'Dusty Millennial', desc: 'Muted pinks, sage greens, grey.', tags: ['millennial', 'soft'] },
+          { term: 'Electric Acid', desc: 'Bright lime, hot pink, cyan clashes.', tags: ['electric', 'clash'] }
+        ]
+      },
+      {
+        id: 'audience',
+        name: 'Target Audience Style Keywords',
+        description: 'Demographic-based visual languages for brand positioning.',
+        keywords: [
+          { term: 'Gen Z Streetwear', desc: 'Bold logos, baggy fits, chaotic layouts, neon.', tags: ['genz', 'fashion'] },
+          { term: 'Corporate Executive Luxury', desc: 'Dark suits, success, minimal, premium.', tags: ['corporate', 'luxury'] },
+          { term: 'Spiritual Wellness Minimal', desc: 'White space, crystals, soft lighting, yoga.', tags: ['wellness', 'spiritual'] },
+          { term: 'Eco-conscious Organic Brand', desc: 'Recycled textures, greens, hand-drawn.', tags: ['eco', 'organic'] },
+          { term: 'Tech Startup Disruptor', desc: 'Sans-serif, bright gradient, "app" icon style.', tags: ['startup', 'tech'] },
+          { term: 'Indie Creative Studio', desc: 'Artistic, collage, experimental, imperfect.', tags: ['indie', 'creative'] },
+          { term: 'High-end Fashion Editorial', desc: 'High contrast, serif type, large photography.', tags: ['fashion', 'editorial'] },
+          { term: 'Youth Gaming Culture', desc: 'Neon, RGB, dark mode, fantasy elements.', tags: ['gaming', 'youth'] },
+          { term: 'Academic Institutional', desc: 'Serif fonts, crests, navy/gold, structured.', tags: ['academic', 'institutional'] },
+          { term: 'Premium Real Estate', desc: 'Wide angles, marble, gold, cinematic lighting.', tags: ['realestate', 'luxury'] },
+          { term: 'Artisan Handmade Craft', desc: 'Kraft paper, stamps, raw textures.', tags: ['craft', 'handmade'] },
+          { term: 'Web3 Community', desc: 'Cyberpunk, gradients, 3D avatars, dark theme.', tags: ['web3', 'crypto'] },
+          { term: 'Luxury Automotive', desc: 'Carbon fiber, sleek metal, motion blur.', tags: ['automotive', 'luxury'] },
+          { term: 'Health Tech Clinical', desc: 'Clean lines, trust-blue, white space.', tags: ['health', 'tech'] },
+          { term: 'Bold Fitness Brand', desc: 'High energy, sweat, impact typography.', tags: ['fitness', 'bold'] },
+          { term: 'Boomer Travel Leisure', desc: 'Cruises, landscapes, clear readable fonts.', tags: ['travel', 'boomer'] },
+          { term: 'Family & Kids', desc: 'Bright primary colors, rounded shapes, safety.', tags: ['kids', 'family'] },
+          { term: 'Pet Care Friendly', desc: 'Soft textures, paw motifs, playful.', tags: ['pets', 'friendly'] },
+          { term: 'Cottagecore', desc: 'Floral, picnics, gingham, rural romanticism.', tags: ['cottage', 'romantic'] },
+          { term: 'Dark Academia', desc: 'Tweed, books, coffee, moody lighting, old money.', tags: ['academic', 'moody'] },
+          { term: 'Light Academia', desc: 'Cream, linen, marble, poetry, sunny libraries.', tags: ['academic', 'light'] },
+          { term: 'Solarpunk', desc: 'Green tech, bright future, nature integrated.', tags: ['green', 'utopian'] },
+          { term: 'Lunarcore', desc: 'Space suits, grey, utilitarian, sci-fi functional.', tags: ['space', 'utilitarian'] },
+          { term: 'Military Tactical', desc: 'Camouflage, olive drab, tactical gear, tough.', tags: ['military', 'tactical'] },
+          { term: 'Surf & Skate', desc: 'Distressed graphics, board culture, graffiti.', tags: ['surf', 'graffiti'] },
+          { term: 'Hipster Artisanal', desc: 'Mustaches, mason jars, vintage filters.', tags: ['hipster', 'vintage'] },
+          { term: 'Met Gala Avant-Garde', desc: 'Unwearable fashion, drama, sculpture.', tags: ['fashion', 'drama'] },
+          { term: 'Suburban Mom', desc: 'Organizer apps, pastel colors, clean UI.', tags: ['suburban', 'clean'] },
+          { term: 'Crypto Bro', desc: 'Lamborghinis, Bitcoin logos, charts, dark mode.', tags: ['crypto', 'masculine'] },
+          { term: 'Granola Nature', desc: 'Hiking, granola, earth tones, hiking boots.', tags: ['nature', 'outdoor'] },
+          { term: 'Preppy Ivy League', desc: 'Polo shirts, navy blazers, campus grounds.', tags: ['preppy', 'academic'] },
+          { term: 'Grunge Revival', desc: 'Plaid, ripped jeans, apathy, Seattle sound.', tags: ['grunge', 'rebellion'] },
+          { term: 'K-Pop Stan', desc: 'Bright, idol photos, fan cam aesthetics, neon.', tags: ['kpop', 'fandom'] },
+          { term: 'Anime Otaku', desc: 'Manga panels, Japanese text, vibrant eyes.', tags: ['anime', 'japanese'] },
+          { term: 'Retro Gamer', desc: '8-bit sprites, arcade cabinets, glitch.', tags: ['gaming', 'retro'] },
+          { term: 'Hypebeast', desc: 'Supreme box logo, limited drops, street wear.', tags: ['hype', 'streetwear'] },
+          { term: 'Minimalist Nomad', desc: 'Backpack, capsule wardrobe, white/grey.', tags: ['minimal', 'travel'] },
+          { term: 'DIY Maker', desc: 'Woodworking, electronics, messy workbench, 3D printing.', tags: ['maker', 'diy'] },
+          { term: 'Plant Parent', desc: 'Tropical leaves, terracotta, sunny windows.', tags: ['plants', 'home'] },
+          { term: 'Digital Nomad', desc: 'Laptop on beach, coworking, freedom, wifi.', tags: ['nomad', 'digital'] }
+        ]
+      },
+      {
+        id: 'texture',
+        name: 'Visual Mood & Texture Keywords',
+        description: 'Modifiers to add depth and specific feeling to your designs.',
+        keywords: [
+          { term: 'Grain Texture Overlay', desc: 'Adds noise and vintage analog feel.', tags: ['grain', 'vintage'] },
+          { term: 'Film Burn Effect', desc: 'Light leaks, orange/yellow overlays, transition.', tags: ['film', 'light'] },
+          { term: 'High-contrast Editorial', desc: 'Stark lighting, deep shadows, fashion.', tags: ['editorial', 'contrast'] },
+          { term: 'Studio Lighting Dramatic', desc: 'Controlled artificial light, sharp shadows.', tags: ['studio', 'dramatic'] },
+          { term: 'Matte Finish Branding', desc: 'Non-glossy, soft to the eye, modern.', tags: ['matte', 'soft'] },
+          { term: 'Chrome 3D Render', desc: 'Metallic, reflective, liquid metal look.', tags: ['chrome', '3d'] },
+          { term: 'Liquid Metal Typography', desc: 'Melting text, shiny, heavy metal.', tags: ['metal', 'type'] },
+          { term: 'Paper Cut Collage', desc: 'Layers of physical paper, shadow depth.', tags: ['paper', 'craft'] },
+          { term: 'Experimental Typography', desc: 'Breaking rules, illegible, form-focused.', tags: ['type', 'experimental'] },
+          { term: 'Grid-heavy Composition', desc: 'Structure, modular, rigid alignment.', tags: ['grid', 'structure'] },
+          { term: 'Asymmetrical Layout', desc: 'Intentional imbalance, dynamic tension.', tags: ['asymmetric', 'dynamic'] },
+          { term: 'Kinetic Type', desc: 'Moving letters, animation principles.', tags: ['motion', 'type'] },
+          { term: 'Abstract Geometry', desc: 'Shapes free of representation, color focus.', tags: ['abstract', 'geometric'] },
+          { term: 'Soft Shadows UI', desc: 'Diffused lighting, floating elements.', tags: ['shadows', 'soft'] },
+          { term: 'Risograph Print', desc: 'Specific ink texture, vibrant overlap, grain.', tags: ['riso', 'print'] },
+          { term: 'Letterpress Effect', desc: 'Indented text, tactile paper feel.', tags: ['letterpress', 'tactile'] },
+          { term: 'Embossed Design', desc: 'Raised relief, 3D effect on paper.', tags: ['embossed', 'tactile'] },
+          { term: 'Foil Stamping', desc: 'Gold or silver metallic application, luxury.', tags: ['foil', 'luxury'] },
+          { term: 'Deckle Edge', desc: 'Torn paper edges, raw, organic books.', tags: ['paper', 'raw'] },
+          { term: 'Vignette', desc: 'Darkened corners, focus on center subject.', tags: ['vignette', 'focus'] },
+          { term: 'Double Exposure', desc: 'Two images overlaid, ghostly effect.', tags: ['double', 'ghostly'] },
+          { term: 'Glitch Effect', desc: 'Digital artifacts, corrupted data look.', tags: ['glitch', 'digital'] },
+          { term: 'RGB Split', desc: 'Separating color channels for 3D glasses feel.', tags: ['rgb', 'digital'] },
+          { term: 'Halftone Pattern', desc: 'Dot matrix printing, comic book style.', tags: ['halftone', 'comic'] },
+          { term: 'Noise & Dithering', desc: 'Pixelated noise, retro web graphics.', tags: ['noise', 'retro'] },
+          { term: 'Watercolor Wash', desc: 'Soft, bleeding edges, transparent colors.', tags: ['watercolor', 'paint'] },
+          { term: 'Oil Painting Stroke', desc: 'Thick texture, brush strokes visible.', tags: ['oil', 'paint'] },
+          { term: 'Charcoal Sketch', desc: 'Smudged, black and white, rough.', tags: ['charcoal', 'sketch'] },
+          { term: 'Blueprint Style', desc: 'Blue background, white technical lines.', tags: ['blueprint', 'technical'] },
+          { term: 'Isometric Projection', desc: '3D objects in 2D space, technical.', tags: ['isometric', 'technical'] },
+          { term: 'Wireframe Mode', desc: 'Exposed structural lines, transparent 3D.', tags: ['wireframe', '3d'] },
+          { term: 'X-ray Aesthetic', desc: 'Translucent skin, bone structures, science.', tags: ['xray', 'science'] },
+          { term: 'Infrared Photography', desc: 'False colors, pink foliage, surreal.', tags: ['infrared', 'surreal'] },
+          { term: 'Macro Photography', desc: 'Extreme close up, texture detail.', tags: ['macro', 'detail'] },
+          { term: 'Tilt-Shift Lens', desc: 'Miniature effect, blurred top/bottom.', tags: ['tiltshift', 'miniature'] },
+          { term: 'Long Exposure Light', desc: 'Light trails, motion streaks.', tags: ['longexposure', 'light'] },
+          { term: 'Bokeh Background', desc: 'Out of focus light circles, dreamy.', tags: ['bokeh', 'dreamy'] },
+          { term: 'Cinematic Color Grade', desc: 'Teal and orange, film look.', tags: ['cinematic', 'film'] },
+          { term: 'Cross-Processed', desc: 'Unnatural color shifts, film chemistry.', tags: ['crossprocess', 'film'] },
+          { term: 'Cyanotype', desc: 'Blueprints, Prussian blue, botanicals.', tags: ['cyanotype', 'blue'] },
+          { term: 'Daguerreotype', desc: 'Early photography, silver surface, scratches.', tags: ['vintage', 'photo'] },
+          { term: 'Polaroid Frame', desc: 'White border, instant film nostalgia.', tags: ['polaroid', 'nostalgia'] },
+          { term: 'Scratched Film', desc: 'Dust, hairs, vertical scratches.', tags: ['film', 'damaged'] },
+          { term: 'Static Noise', desc: 'TV snow, dead channel.', tags: ['static', 'noise'] },
+          { term: 'Holographic Foil', desc: 'Iridescent rainbow surface.', tags: ['holo', 'iridescent'] },
+          { term: 'Bioluminescent', desc: 'Glowing organic matter, deep sea.', tags: ['bio', 'glow'] },
+          { term: 'Cracked Texture', desc: 'Fractured surface, dried earth.', tags: ['cracked', 'earth'] },
+          { term: 'Rust & Peeling Paint', desc: 'Urban decay, abandonment.', tags: ['rust', 'decay'] },
+          { term: 'Smoke & Fog', desc: 'Obscured view, mystery, atmospheric.', tags: ['smoke', 'fog'] },
+          { term: 'Liquid Splash', desc: 'Water dynamics, frozen motion.', tags: ['liquid', 'splash'] },
+          { term: 'Shattered Glass', desc: 'Fractals, danger, transparency.', tags: ['glass', 'shattered'] },
+          { term: 'Fabric Texture', desc: 'Wool, linen, silk close up.', tags: ['fabric', 'textile'] },
+          { term: 'Wood Grain Pattern', desc: 'Natural rings, organic texture.', tags: ['wood', 'organic'] },
+          { term: 'Marble Veining', desc: 'Luxury stone texture.', tags: ['marble', 'luxury'] },
+          { term: 'Concrete Surface', desc: 'Brutalist material, grey, porous.', tags: ['concrete', 'brutalist'] },
+          { term: 'Brushed Metal', desc: 'Stainless steel, directional finish.', tags: ['metal', 'industrial'] },
+          { term: 'Leather Grain', desc: 'Luxury skin texture, premium feel.', tags: ['leather', 'luxury'] },
+          { term: 'Ceramic Glaze', desc: 'Glossy, handmade pottery feel.', tags: ['ceramic', 'craft'] }
+        ]
+      }
+    ];
+
+    // ========== STATE ==========
+    let currentCategory = 'studios';
+    let selectedKeywords = new Set();
+    let activeEraFilter = null;
+    let searchQuery = '';
+
+    // ========== DOM ELEMENTS ==========
+    const categoryNav = document.getElementById('categoryNav');
+    const keywordGrid = document.getElementById('keywordGrid');
+    const currentCategoryTitle = document.getElementById('currentCategory');
+    const categoryDescription = document.getElementById('categoryDescription');
+    const stackBar = document.getElementById('stackBar');
+    const selectedCount = document.getElementById('selectedCount');
+    const stackCount = document.getElementById('stackCount');
+    const totalCount = document.getElementById('totalCount');
+    const selectedPreview = document.getElementById('selectedPreview');
+    const searchInput = document.getElementById('searchInput');
+    const randomBtn = document.getElementById('randomBtn');
+    const clearStack = document.getElementById('clearStack');
+    const copyStack = document.getElementById('copyStack');
+    const exportStack = document.getElementById('exportStack');
+    const toastContainer = document.getElementById('toastContainer');
+
+    // ========== FUNCTIONS ==========
+    function init() {
+      renderCategories();
+      renderKeywords();
+      updateStats();
+      setupEventListeners();
+    }
+
+    function renderCategories() {
+      categoryNav.innerHTML = categories.map(cat => `
+        <button 
+          class="category-btn w-full text-left px-4 py-3 text-sm ${cat.id === currentCategory ? 'active' : ''}"
+          data-category="${cat.id}"
+        >
+          <span class="block font-medium">${cat.name}</span>
+          <span class="block text-xs text-[var(--muted)] mt-1">${cat.keywords.length} keywords</span>
+        </button>
+      `).join('');
+    }
+
+    function renderKeywords() {
+      const category = categories.find(c => c.id === currentCategory);
+      if (!category) return;
+
+      currentCategoryTitle.textContent = category.name;
+      categoryDescription.textContent = category.description;
+
+      let keywords = [...category.keywords];
+
+      // Apply era filter
+      if (activeEraFilter) {
+        keywords = keywords.filter(k => k.era === activeEraFilter);
+      }
+
+      // Apply search filter
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        keywords = keywords.filter(k => 
+          k.term.toLowerCase().includes(q) || 
+          k.desc.toLowerCase().includes(q) ||
+          k.tags.some(t => t.toLowerCase().includes(q))
+        );
+      }
+
+      keywordGrid.innerHTML = keywords.map((keyword, index) => `
+        <article 
+          class="keyword-card p-4 rounded cursor-pointer animate-fade-up stagger-${Math.min(index % 6 + 1, 5)} ${selectedKeywords.has(keyword.term) ? 'selected' : ''}"
+          data-term="${keyword.term}"
+          data-desc="${keyword.desc}"
+        >
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="font-bold text-lg leading-tight">${keyword.term}</h3>
+            <button 
+              class="copy-btn p-2 hover:bg-[var(--accent-dim)] rounded transition-colors"
+              data-term="${keyword.term}"
+              data-desc="${keyword.desc}"
+              aria-label="Copy ${keyword.term}"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+              </svg>
+            </button>
+          </div>
+          <p class="text-sm text-[var(--muted)] mb-3 leading-relaxed">${keyword.desc}</p>
+          <div class="flex flex-wrap gap-1">
+            ${keyword.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            ${keyword.era ? `<span class="tag bg-[var(--border)] text-[var(--fg)]">${keyword.era}</span>` : ''}
+          </div>
+        </article>
+      `).join('');
+
+      if (keywords.length === 0) {
+        keywordGrid.innerHTML = `
+          <div class="col-span-full text-center py-16">
+            <p class="text-[var(--muted)] text-lg">No keywords found matching your criteria.</p>
+            <button class="btn-ghost px-4 py-2 text-sm rounded mt-4" onclick="resetFilters()">Reset Filters</button>
+          </div>
+        `;
+      }
+    }
+
+    function updateStats() {
+      const total = categories.reduce((sum, cat) => sum + cat.keywords.length, 0);
+      totalCount.textContent = total;
+      stackCount.textContent = selectedKeywords.size;
+      selectedCount.textContent = selectedKeywords.size;
+    }
+
+    function updateStackBar() {
+      if (selectedKeywords.size > 0) {
+        stackBar.classList.remove('hidden');
+        updateStats();
+        renderSelectedPreview();
+      } else {
+        stackBar.classList.add('hidden');
+      }
+    }
+
+    function renderSelectedPreview() {
+      const previewItems = Array.from(selectedKeywords).slice(0, 5);
+      selectedPreview.innerHTML = previewItems.map(term => `
+        <span class="tag whitespace-nowrap">${term}</span>
+      `).join('');
+      
+      if (selectedKeywords.size > 5) {
+        selectedPreview.innerHTML += `<span class="tag bg-[var(--border)] text-[var(--fg)]">+${selectedKeywords.size - 5} more</span>`;
+      }
+    }
+
+    function toggleKeyword(term, desc) {
+      if (selectedKeywords.has(term)) {
+        selectedKeywords.delete(term);
+      } else {
+        selectedKeywords.add(term);
+      }
+      
+      // Update card visual
+      const card = document.querySelector(`[data-term="${term}"]`);
+      if (card) {
+        card.classList.toggle('selected', selectedKeywords.has(term));
+      }
+      
+      updateStackBar();
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard');
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'copy-toast';
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 2000);
+    }
+
+    function generateRandomStack() {
+      // Clear current selection
+      selectedKeywords.clear();
+      
+      // Pick random category
+      const randomCat = categories[Math.floor(Math.random() * categories.length)];
+      
+      // Pick 3-5 random keywords from that category
+      const count = Math.floor(Math.random() * 3) + 3;
+      const shuffled = [...randomCat.keywords].sort(() => 0.5 - Math.random());
+      
+      shuffled.slice(0, count).forEach(k => {
+        selectedKeywords.add(k.term);
+      });
+      
+      // Switch to that category
+      currentCategory = randomCat.id;
+      renderCategories();
+      renderKeywords();
+      updateStackBar();
+      
+      showToast(`Generated ${count} random keywords`);
+    }
+
+    function exportToTxt() {
+      let content = "VisualLex Keyword Export\n";
+      content += "========================\n\n";
+      
+      categories.forEach(cat => {
+        cat.keywords.forEach(k => {
+          if (selectedKeywords.has(k.term)) {
+            content += `${k.term}: ${k.desc}\n`;
+          }
+        });
+      });
+      
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'visuallex-keywords.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showToast('Exported as .txt file');
+    }
+
+    function copyAllSelected() {
+      let content = "";
+      
+      categories.forEach(cat => {
+        cat.keywords.forEach(k => {
+          if (selectedKeywords.has(k.term)) {
+            content += `${k.term}: ${k.desc}\n`;
+          }
+        });
+      });
+      
+      copyToClipboard(content);
+    }
+
+    function resetFilters() {
+      activeEraFilter = null;
+      searchQuery = '';
+      searchInput.value = '';
+      document.querySelectorAll('.era-btn').forEach(btn => {
+        btn.classList.remove('bg-[var(--accent)]', 'text-black');
+      });
+      renderKeywords();
+    }
+
+    // ========== EVENT LISTENERS ==========
+    function setupEventListeners() {
+      // Category navigation
+      categoryNav.addEventListener('click', (e) => {
+        const btn = e.target.closest('.category-btn');
+        if (btn) {
+          currentCategory = btn.dataset.category;
+          renderCategories();
+          renderKeywords();
+        }
+      });
+
+      // Keyword card interactions
+      keywordGrid.addEventListener('click', (e) => {
+        const card = e.target.closest('.keyword-card');
+        const copyBtn = e.target.closest('.copy-btn');
+        
+        if (copyBtn) {
+          e.stopPropagation();
+          const text = `${copyBtn.dataset.term}: ${copyBtn.dataset.desc}`;
+          copyToClipboard(text);
+          return;
+        }
+        
+        if (card) {
+          toggleKeyword(card.dataset.term, card.dataset.desc);
+        }
+      });
+
+      // Search
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderKeywords();
+      });
+
+      // Era filters
+      document.querySelectorAll('.era-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const era = btn.dataset.era;
+          
+          if (activeEraFilter === era) {
+            activeEraFilter = null;
+            btn.classList.remove('bg-[var(--accent)]', 'text-black');
+          } else {
+            document.querySelectorAll('.era-btn').forEach(b => {
+              b.classList.remove('bg-[var(--accent)]', 'text-black');
+            });
+            activeEraFilter = era;
+            btn.classList.add('bg-[var(--accent)]', 'text-black');
+          }
+          
+          renderKeywords();
+        });
+      });
+
+      // Random stack
+      randomBtn.addEventListener('click', generateRandomStack);
+
+      // Stack bar actions
+      clearStack.addEventListener('click', () => {
+        selectedKeywords.clear();
+        document.querySelectorAll('.keyword-card.selected').forEach(card => {
+          card.classList.remove('selected');
+        });
+        updateStackBar();
+      });
+
+      copyStack.addEventListener('click', copyAllSelected);
+      exportStack.addEventListener('click', exportToTxt);
+
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && e.target.tagName !== 'INPUT') {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        
+        if (e.key === 'Escape') {
+          searchInput.blur();
+        }
+      });
+    }
+
+    // Initialize
+    init();
+  </script>
+</body>
+</html>
